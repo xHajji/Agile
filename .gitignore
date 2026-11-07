@@ -1,0 +1,11 @@
+.gradle/
+build/
+node_modules/
+dist/
+.env
+.env.*
+.idea/
+*.iml
+.classpath
+.project
+.settings/

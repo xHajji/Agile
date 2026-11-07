@@ -1,0 +1,13 @@
+rootProject.name = 'agile'
+
+include 'project-rest-api'
+
+if (file('project-web-app/build.gradle').isFile()) {
+    include 'project-web-app'
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}

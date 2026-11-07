@@ -1,0 +1,21 @@
+name: agile-lab
+
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: projekty
+      POSTGRES_USER: projekty_app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-projekty_local}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  postgres-data:
