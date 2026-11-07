@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agile | Thymeleaf</title>
+</head>
+<body>
+    <main>
+        <h1>Agile · Thymeleaf</h1>
+        <p>Spring MVC generuje tę stronę. RestClient sprawdza połączenie z API.</p>
+        <p th:if="${connected}">Połączenie z API i bazą działa.</p>
+        <p th:unless="${connected}">Brak połączenia z API lub bazą. Uruchom oba serwisy i odśwież stronę.</p>
+    </main>
+</body>
+</html>
