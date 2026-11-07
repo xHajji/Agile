@@ -4,6 +4,81 @@ Wybierz **Thymeleaf** albo **React**. Każdy wariant ma własny frontend i może
 
 Strona startowa pokazuje, czy frontend łączy się z API i czy API ma dostęp do bazy. Formularz „Nazwa projektu” i lista zapisanych projektów są zadaniami do wykonania w Sprincie 1.
 
+## Uruchomienie krok po kroku
+
+### 1. Przygotuj narzędzia i otwórz repozytorium
+
+Potrzebujesz **JDK 21**, **Git** oraz **Docker Desktop** z działającym silnikiem. Do wariantu React potrzebujesz też **Node.js 22.12 lub nowszego** i npm. Gradle Wrapper pobierze potrzebną wersję Gradle przy pierwszym uruchomieniu. Na Windowsie najlepiej sklonować projekt do folderu, którego ścieżka zawiera litery bez znaków diakrytycznych, np. `D:\projekty`. [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) · [Wymagania Vite](https://vite.dev/guide/#getting-started)
+
+**Chcesz sprawdzić kod przed scaleniem PR-a?** W PowerShellu otwórz folder, w którym chcesz umieścić projekt, i wykonaj jeden z dwóch bloków.
+
+**React z PR-a #1**
+
+```powershell
+git clone --branch codex/backend-react https://github.com/xHajji/Agile.git Agile-react
+cd Agile-react
+```
+
+**Thymeleaf z PR-a #2**
+
+```powershell
+git clone --branch codex/backend-thymeleaf https://github.com/xHajji/Agile.git Agile-thymeleaf
+cd Agile-thymeleaf
+```
+
+**Po scaleniu wybranego PR-a** możesz pobrać projekt z gałęzi `main`.
+
+```powershell
+git clone https://github.com/xHajji/Agile.git
+cd Agile
+```
+
+W kolejnych krokach **folder projektu** to ten, w którym jest plik `compose.yaml`. W każdym nowym terminalu wejdź do tego samego folderu. Terminale z uruchomionym API i frontendem zostaw otwarte.
+
+### 2. Uruchom bazę PostgreSQL
+
+Otwórz Docker Desktop i poczekaj na uruchomienie silnika. Poniższe polecenia wykonaj w pierwszym terminalu, w folderze projektu.
+
+```powershell
+docker compose up -d --wait db
+docker compose ps
+```
+
+W kolumnie stanu przy `db` powinno pojawić się `healthy`. Przy pierwszym uruchomieniu Docker pobierze obraz PostgreSQL. [Dokumentacja Docker Compose](https://docs.docker.com/reference/cli/docker/compose/up/)
+
+### 3. Uruchom wspólne API
+
+Otwórz drugi terminal w folderze projektu i uruchom API.
+
+```powershell
+.\gradlew.bat :project-rest-api:bootRun
+```
+
+Na macOS i Linuksie użyj `./gradlew :project-rest-api:bootRun`. Zostaw terminal otwarty. Otwórz [stan API](http://127.0.0.1:8080/actuator/health). Odpowiedź powinna zawierać `"status":"UP"`. Ten wynik uwzględnia połączenie z bazą. [Spring Boot Actuator](https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.health)
+
+### 4A. Uruchom frontend Thymeleaf
+
+Otwórz kolejny terminal w folderze projektu.
+
+```powershell
+.\gradlew.bat :project-web-app:bootRun
+```
+
+Na macOS i Linuksie użyj `./gradlew :project-web-app:bootRun`. Otwórz [Thymeleaf na porcie 8081](http://127.0.0.1:8081). Zobaczysz nagłówek **Agile · Thymeleaf** i informację o stanie połączenia. [Spring RestClient](https://docs.spring.io/spring-boot/reference/io/rest-client.html)
+
+### 4B. Uruchom frontend React
+
+Otwórz kolejny terminal w folderze projektu.
+
+```powershell
+cd project-web-react
+node --version
+npm.cmd ci
+npm.cmd run dev
+```
+
+Na macOS i Linuksie użyj `npm ci` oraz `npm run dev`. Otwórz [React na porcie 5173](http://127.0.0.1:5173). Zobaczysz nagłówek **Agile · React** i stan tego samego API. Możesz wykonać kroki 4A i 4B równocześnie. [Proxy w Vite](https://vite.dev/config/server-options#server-proxy)
+
 ## Technologie i różnice
 
 | Część | Technologie | Co robi |
@@ -51,69 +126,12 @@ flowchart LR
 - [Przewodnik zespołu](docs/Sprint%201%20-%20przewodnik%20zespo%C5%82u.docx) przedstawia skróconą instrukcję dla osób zaczynających pracę.
 - [Pierwszy szkic planu](docs/archiwum/Plan%20pierwszego%20sprintu.docx) jest w archiwum. Do planowania użyj wersji „krok po kroku”.
 
-## Uruchomienie krok po kroku
-
-### 1. Przygotuj narzędzia i otwórz repozytorium
-
-Potrzebujesz **JDK 21**, **Git** oraz **Docker Desktop** z działającym silnikiem. Do wariantu React potrzebujesz też **Node.js 22.12 lub nowszego** i npm. Gradle Wrapper pobierze potrzebną wersję Gradle przy pierwszym uruchomieniu. Na Windowsie najlepiej sklonować projekt do folderu, którego ścieżka zawiera litery bez znaków diakrytycznych, np. `D:\projekty`. [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) · [Wymagania Vite](https://vite.dev/guide/#getting-started)
-
-```powershell
-git clone https://github.com/xHajji/Agile.git
-cd Agile
-java -version
-docker compose version
-```
-
-Każdy kolejny krok uruchamiaj w osobnym terminalu otwartym w folderze `Agile`, chyba że polecenie wskazuje inny folder.
-
-### 2. Uruchom bazę PostgreSQL
-
-```powershell
-docker compose up -d --wait db
-docker compose ps
-```
-
-W kolumnie stanu przy `db` powinno pojawić się `healthy`. Przy pierwszym uruchomieniu Docker pobierze obraz PostgreSQL. [Dokumentacja Docker Compose](https://docs.docker.com/reference/cli/docker/compose/up/)
-
-### 3. Uruchom wspólne API
-
-W nowym terminalu w folderze `Agile`:
-
-```powershell
-.\gradlew.bat :project-rest-api:bootRun
-```
-
-Na macOS i Linuksie użyj `./gradlew :project-rest-api:bootRun`. Zostaw terminal otwarty. Otwórz [stan API](http://127.0.0.1:8080/actuator/health). Odpowiedź powinna zawierać `"status":"UP"`. Ten wynik uwzględnia połączenie z bazą. [Spring Boot Actuator](https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.health)
-
-### 4A. Uruchom frontend Thymeleaf
-
-W kolejnym terminalu w folderze `Agile`:
-
-```powershell
-.\gradlew.bat :project-web-app:bootRun
-```
-
-Na macOS i Linuksie użyj `./gradlew :project-web-app:bootRun`. Otwórz [Thymeleaf na porcie 8081](http://127.0.0.1:8081). Zobaczysz nagłówek **Agile · Thymeleaf** i informację o stanie połączenia. [Spring RestClient](https://docs.spring.io/spring-boot/reference/io/rest-client.html)
-
-### 4B. Uruchom frontend React
-
-W kolejnym terminalu w folderze `Agile`:
-
-```powershell
-cd project-web-react
-node --version
-npm.cmd ci
-npm.cmd run dev
-```
-
-Na macOS i Linuksie użyj `npm ci` oraz `npm run dev`. Otwórz [React na porcie 5173](http://127.0.0.1:5173). Zobaczysz nagłówek **Agile · React** i stan tego samego API. Możesz wykonać kroki 4A i 4B równocześnie. [Proxy w Vite](https://vite.dev/config/server-options#server-proxy)
-
 ## Sprawdzenie i zakończenie pracy
 
 - W obu frontendach powinien pojawić się tekst **„Połączenie z API i bazą działa.”**. Gdy uruchomisz API lub bazę już po otwarciu strony, odśwież stronę.
-- Aby zbudować moduły Java, w folderze `Agile` wykonaj `./gradlew build` na macOS lub Linuksie albo `.\gradlew.bat build` na Windowsie.
+- Aby zbudować moduły Java, w folderze projektu wykonaj `./gradlew build` na macOS lub Linuksie albo `.\gradlew.bat build` na Windowsie.
 - Aby zbudować React, w folderze `project-web-react` wykonaj `npm.cmd run build` lub `npm run build`. Pliki trafią do `dist/`. Lokalny podgląd tej kompilacji uruchomisz przez `npm.cmd run preview` lub `npm run preview` na [porcie 4173](http://127.0.0.1:4173).
-- Aby zakończyć pracę, zatrzymaj frontendy i API klawiszami `Ctrl+C` w ich terminalach. W folderze `Agile` wykonaj `docker compose stop db`. Dane pozostaną w wolumenie.
+- Aby zakończyć pracę, zatrzymaj frontendy i API klawiszami `Ctrl+C` w ich terminalach. W folderze projektu wykonaj `docker compose stop db`. Dane pozostaną w wolumenie.
 
 ## Gdy coś się nie uruchamia
 
@@ -121,7 +139,7 @@ Na macOS i Linuksie użyj `npm ci` oraz `npm run dev`. Otwórz [React na porcie 
 
 **Port 5432 jest zajęty.** W terminalu bazy i w terminalu API ustaw `$env:POSTGRES_PORT = '5433'` przed uruchomieniem poleceń. Na macOS i Linuksie użyj `export POSTGRES_PORT=5433`. Oba procesy muszą używać tego samego numeru portu.
 
-**Windows zgłasza „Unable to access jarfile”.** Jeżeli ścieżka zawiera polskie litery, z folderu `Agile` wywołaj wrapper przez ścieżkę względną. Przykład dla API:
+**Windows zgłasza „Unable to access jarfile”.** Jeżeli ścieżka zawiera polskie litery, z folderu projektu wywołaj wrapper przez ścieżkę względną. Dla API użyj poniższego polecenia.
 
 ```powershell
 java -jar gradle/wrapper/gradle-wrapper.jar :project-rest-api:bootRun
