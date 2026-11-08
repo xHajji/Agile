@@ -17,5 +17,44 @@ services:
       timeout: 3s
       retries: 15
 
+  api:
+    build:
+      context: .
+      target: api
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/projekty
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-projekty_local}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/actuator/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+
+  web:
+    build:
+      context: .
+      target: web
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      API_BASE_URL: http://api:8080
+    ports:
+      - "127.0.0.1:8081:8081"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8081/"]
+      interval: 3s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+
 volumes:
   postgres-data:
