@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Projekty | Agile</title>
+    <link rel="stylesheet" href="/projects.css" th:href="@{/projects.css}">
+</head>
+<body>
+    <main class="workspace">
+        <header class="page-header">
+            <p class="brand">Agile</p>
+            <h1>Projekty</h1>
+        </header>
+
+        <section class="panel" aria-labelledby="create-title">
+            <h2 id="create-title">Dodaj projekt</h2>
+            <p th:if="${saved}" class="message success" role="status">Zapisano projekt.</p>
+            <p th:if="${saveError}" class="message error" role="alert" th:text="${saveError}"></p>
+            <form method="post" action="/projects" th:action="@{/projects}">
+                <label for="name">Nazwa projektu</label>
+                <div class="form-row">
+                    <input id="name" name="name" type="text" maxlength="120" th:value="${name}"
+                           th:attr="aria-invalid=${nameError != null},
+                                    aria-describedby=${nameError != null ? 'name-error' : null}">
+                    <button type="submit">Zapisz</button>
+                </div>
+                <p th:if="${nameError}" id="name-error" class="message error"
+                   role="alert" th:text="${nameError}"></p>
+            </form>
+        </section>
+
+        <section class="panel" aria-labelledby="list-title">
+            <h2 id="list-title">Zapisane projekty</h2>
+            <p th:if="${listUnavailable}" class="message error" role="alert">
+                Lista projektów jest niedostępna. Sprawdź połączenie z API i bazą, a następnie odśwież stronę.
+            </p>
+            <th:block th:unless="${listUnavailable}">
+                <p th:if="${#lists.isEmpty(projects)}" class="empty">Nie ma jeszcze projektów</p>
+                <ul th:unless="${#lists.isEmpty(projects)}" class="project-list">
+                    <li th:each="project : ${projects}" th:text="${project.name}"></li>
+                </ul>
+            </th:block>
+        </section>
+    </main>
+</body>
+</html>
