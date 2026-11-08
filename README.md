@@ -1,152 +1,45 @@
-# Agile · środowisko startowe do Sprintu 1
+# Agile Sprint 1 · Thymeleaf
 
-Wybierz **Thymeleaf** albo **React**. Każdy wariant ma własny frontend i może działać samodzielnie z API w Javie i bazą PostgreSQL. Wykonaj krok 4A, jeśli masz folder `project-web-app`, lub 4B, jeśli masz folder `project-web-react`. Jeśli masz oba foldery, możesz uruchomić oba frontendy jednocześnie i porównać je w dwóch kartach przeglądarki.
+Sprint 1 pozwala dodać projekt i odczytać zapisaną listę. Formularz wysyła nazwę do aplikacji Spring MVC. Ta przekazuje ją przez RestClient do osobnego API Spring Boot, które zapisuje projekt w PostgreSQL. Thymeleaf generuje widok listy na serwerze.
 
-Strona startowa pokazuje, czy frontend łączy się z API i czy API ma dostęp do bazy. Formularz „Nazwa projektu” i lista zapisanych projektów są zadaniami do wykonania w Sprincie 1.
+## Uruchomienie lokalne
 
-## Uruchomienie krok po kroku
+Potrzebujesz JDK 21 oraz działającego Docker Desktop z Compose. Polecenia wykonuj w katalogu z plikiem `compose.yaml`. Na Windows zalecana jest ścieżka bez polskich znaków. Jeśli projekt jest już w takiej ścieżce jak `D:\SZKOŁA`, użyj polecenia `java -jar` poniżej oraz katalogu `GRADLE_USER_HOME` bez polskich znaków. Jeśli ten katalog jest ustawiony, stosuj to samo ustawienie w każdym terminalu Gradle.
 
-### 1. Przygotuj narzędzia i otwórz repozytorium
+1. Uruchom bazę. Terminal możesz później zamknąć.
 
-Potrzebujesz **JDK 21**, **Git** oraz **Docker Desktop** z działającym silnikiem. Do wariantu React potrzebujesz też **Node.js 22.12 lub nowszego** i npm. Gradle Wrapper pobierze potrzebną wersję Gradle przy pierwszym uruchomieniu. Na Windowsie najlepiej sklonować projekt do folderu, którego ścieżka zawiera litery bez znaków diakrytycznych, np. `D:\projekty`. [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) · [Wymagania Vite](https://vite.dev/guide/#getting-started)
+   ```powershell
+   docker compose up -d --wait db
+   ```
 
-**Chcesz sprawdzić kod przed scaleniem PR-a?** W PowerShellu otwórz folder, w którym chcesz umieścić projekt, i wykonaj jeden z dwóch bloków.
+2. W drugim terminalu uruchom API. API tworzy tabelę `projects` przy pierwszym starcie. Stan bazy i API sprawdzisz na [porcie 8080](http://127.0.0.1:8080/actuator/health).
 
-**React z PR-a #1**
+   ```powershell
+   $env:GRADLE_USER_HOME = 'D:\Agile-Sprint1-Gradle'
+   java -jar gradle/wrapper/gradle-wrapper.jar :project-rest-api:bootRun
+   ```
 
-```powershell
-git clone --branch codex/backend-react https://github.com/xHajji/Agile.git Agile-react
-cd Agile-react
-```
+3. W trzecim terminalu uruchom widok i otwórz [stronę Projekty](http://127.0.0.1:8081/).
 
-**Thymeleaf z PR-a #2**
+   ```powershell
+   $env:GRADLE_USER_HOME = 'D:\Agile-Sprint1-Gradle'
+   java -jar gradle/wrapper/gradle-wrapper.jar :project-web-app:bootRun
+   ```
 
-```powershell
-git clone --branch codex/backend-thymeleaf https://github.com/xHajji/Agile.git Agile-thymeleaf
-cd Agile-thymeleaf
-```
+   Na macOS lub Linuksie użyj `./gradlew :project-rest-api:bootRun` i `./gradlew :project-web-app:bootRun`.
 
-**Po scaleniu wybranego PR-a** możesz pobrać projekt z gałęzi `main`.
+Jeśli port 5432 jest zajęty, przed startem ustaw np. `$env:POSTGRES_PORT = '5433'` w terminalu bazy i w terminalu API. Jeśli uruchamiasz API pod innym adresem, w terminalu frontendu ustaw `API_BASE_URL` na ten adres.
 
-```powershell
-git clone https://github.com/xHajji/Agile.git
-cd Agile
-```
+## Pokaz na zajęciach
 
-W kolejnych krokach **folder projektu** to ten, w którym jest plik `compose.yaml`. W każdym nowym terminalu wejdź do tego samego folderu. Terminale z uruchomionym API i frontendem zostaw otwarte.
+Na pustej bazie strona wyświetla „Nie ma jeszcze projektów”. Kliknij „Zapisz” bez wpisywania nazwy, a potem wpisz same spacje i powtórz. W obu przypadkach pojawi się „Wpisz nazwę projektu”. Zapisz „Projekt Alfa” i „Projekt Beta”. Pojawią się na liście, a po odświeżeniu nadal będą widoczne.
 
-### 2. Uruchom bazę PostgreSQL
+Na już używanej bazie do pokazu wybierz nową nazwę. Jeśli chcesz pokazać pustą listę, uruchom osobną bazę na wolnym porcie, np. ustaw `POSTGRES_PORT` na `55432` w obu terminalach i użyj `docker compose -p agile-sprint-demo up -d --wait db`. Dane są przechowywane w wolumenie projektu Compose. Aby zakończyć pracę, zatrzymaj oba procesy Javy klawiszami Ctrl+C i wykonaj `docker compose stop db` (dodaj `-p agile-sprint-demo`, jeśli używasz tej nazwy projektu).
 
-Otwórz Docker Desktop i poczekaj na uruchomienie silnika. Poniższe polecenia wykonaj w pierwszym terminalu, w folderze projektu.
+## Moduły i sprawdzenie
 
-```powershell
-docker compose up -d --wait db
-docker compose ps
-```
+- `project-web-app` obsługuje stronę pod `/` i formularz pod `/projects`.
+- `project-rest-api` zwraca listę w `GET /api/projects` i zapisuje `{"name":"Projekt Alfa"}` przez `POST /api/projects`. Poprawny zapis zwraca HTTP 201 z identyfikatorem i nazwą. Pusta nazwa, same spacje lub nazwa przekraczająca 120 znaków zwracają HTTP 400.
+- `java -jar gradle/wrapper/gradle-wrapper.jar build` buduje oba moduły i uruchamia testy MockMvc z Mockito. Testy nie wymagają działającej bazy.
 
-W kolumnie stanu przy `db` powinno pojawić się `healthy`. Przy pierwszym uruchomieniu Docker pobierze obraz PostgreSQL. [Dokumentacja Docker Compose](https://docs.docker.com/reference/cli/docker/compose/up/)
-
-### 3. Uruchom wspólne API
-
-Otwórz drugi terminal w folderze projektu i uruchom API.
-
-```powershell
-.\gradlew.bat :project-rest-api:bootRun
-```
-
-Na macOS i Linuksie użyj `./gradlew :project-rest-api:bootRun`. Zostaw terminal otwarty. Otwórz [stan API](http://127.0.0.1:8080/actuator/health). Odpowiedź powinna zawierać `"status":"UP"`. Ten wynik uwzględnia połączenie z bazą. [Spring Boot Actuator](https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.health)
-
-### 4A. Uruchom frontend Thymeleaf
-
-Otwórz kolejny terminal w folderze projektu.
-
-```powershell
-.\gradlew.bat :project-web-app:bootRun
-```
-
-Na macOS i Linuksie użyj `./gradlew :project-web-app:bootRun`. Otwórz [Thymeleaf na porcie 8081](http://127.0.0.1:8081). Zobaczysz nagłówek **Agile · Thymeleaf** i informację o stanie połączenia. [Spring RestClient](https://docs.spring.io/spring-boot/reference/io/rest-client.html)
-
-### 4B. Uruchom frontend React
-
-Otwórz kolejny terminal w folderze projektu.
-
-```powershell
-cd project-web-react
-node --version
-npm.cmd ci
-npm.cmd run dev
-```
-
-Na macOS i Linuksie użyj `npm ci` oraz `npm run dev`. Otwórz [React na porcie 5173](http://127.0.0.1:5173). Zobaczysz nagłówek **Agile · React** i stan tego samego API. Możesz wykonać kroki 4A i 4B równocześnie. [Proxy w Vite](https://vite.dev/config/server-options#server-proxy)
-
-## Technologie i różnice
-
-| Część | Technologie | Co robi |
-| --- | --- | --- |
-| Wspólne API | Java 21, Spring Boot 4.1.2, Spring MVC, Spring Data JPA, Gradle 9.5 | Obsługuje żądania HTTP i łączy się z PostgreSQL. Actuator udostępnia `GET /actuator/health`. |
-| Thymeleaf | Spring MVC, Thymeleaf, RestClient | Serwer frontendu wysyła żądanie do API, wypełnia szablon i zwraca gotowy HTML. To układ opisany w instrukcji laboratoryjnej. |
-| React | React 19.3, JavaScript, Vite 8.3, npm | React tworzy ekran w przeglądarce. Vite podczas pracy lokalnej przekazuje żądania do API. |
-| Wspólna baza | PostgreSQL 18, Docker Compose | Przechowuje dane w bazie `projekty`. Kontener ma wolumen, który zachowuje dane po zatrzymaniu. |
-
-Java 21 odpowiada ustawieniu w przykładzie frontendu z instrukcji. Oba moduły Java używają Spring Boot 4.1.2, który współpracuje z Gradle 9.5. [Wymagania Spring Boot](https://docs.spring.io/spring-boot/4.1/system-requirements.html)
-
-## Struktura folderów
-
-```text
-Agile/
-├── project-rest-api/
-│   └── src/main/
-│       ├── java/pl/agile/api/           # Kod wspólnego API
-│       └── resources/application.properties
-├── project-web-app/
-│   └── src/main/
-│       ├── java/pl/agile/web/           # Kontroler i połączenie RestClient
-│       └── resources/templates/        # Szablony HTML Thymeleaf
-├── project-web-react/
-│   ├── src/                             # Komponenty React
-│   ├── vite.config.js                   # Port Reacta i adres API
-│   └── package-lock.json                # Wersje instalowane przez npm ci
-├── compose.yaml                         # Lokalny kontener PostgreSQL
-├── docs/                                # Dokumenty zespołu do Sprintu 1
-├── build.gradle i settings.gradle       # Wspólne ustawienia modułów Java
-└── gradlew, gradlew.bat i gradle/        # Gradle Wrapper
-```
-
-```mermaid
-flowchart LR
-    T["Thymeleaf · 8081"] -->|RestClient| A["Spring REST API · 8080"]
-    R["React · 5173"] -->|Proxy Vite| A
-    A --> P["PostgreSQL · 5432"]
-```
-
-## Dokumenty zespołu
-
-- [Plan pierwszego sprintu krok po kroku](docs/Plan%20pierwszego%20sprintu%20-%20krok%20po%20kroku.docx) zawiera nazwy i opisy kart, przykładową tablicę Trello oraz wzory notatki i sprawozdania.
-- [Historyjki użytkownika na Sprint 1](docs/Historyjki%20u%C5%BCytkownika%20-%20Sprint%201.docx) zawierają opisy dwóch kart do skopiowania do Trello i kroki sprawdzenia w przeglądarce.
-- [Przewodnik zespołu](docs/Sprint%201%20-%20przewodnik%20zespo%C5%82u.docx) przedstawia skróconą instrukcję dla osób zaczynających pracę.
-- [Pierwszy szkic planu](docs/archiwum/Plan%20pierwszego%20sprintu.docx) jest w archiwum. Do planowania użyj wersji „krok po kroku”.
-
-## Sprawdzenie i zakończenie pracy
-
-- W obu frontendach powinien pojawić się tekst **„Połączenie z API i bazą działa.”**. Gdy uruchomisz API lub bazę już po otwarciu strony, odśwież stronę.
-- Aby zbudować moduły Java, w folderze projektu wykonaj `./gradlew build` na macOS lub Linuksie albo `.\gradlew.bat build` na Windowsie.
-- Aby zbudować React, w folderze `project-web-react` wykonaj `npm.cmd run build` lub `npm run build`. Pliki trafią do `dist/`. Lokalny podgląd tej kompilacji uruchomisz przez `npm.cmd run preview` lub `npm run preview` na [porcie 4173](http://127.0.0.1:4173).
-- Aby zakończyć pracę, zatrzymaj frontendy i API klawiszami `Ctrl+C` w ich terminalach. W folderze projektu wykonaj `docker compose stop db`. Dane pozostaną w wolumenie.
-
-## Gdy coś się nie uruchamia
-
-**Docker nie odpowiada.** Otwórz Docker Desktop i poczekaj na uruchomienie silnika. Powtórz krok 2. Logi bazy zobaczysz przez `docker compose logs db`.
-
-**Port 5432 jest zajęty.** W terminalu bazy i w terminalu API ustaw `$env:POSTGRES_PORT = '5433'` przed uruchomieniem poleceń. Na macOS i Linuksie użyj `export POSTGRES_PORT=5433`. Oba procesy muszą używać tego samego numeru portu.
-
-**Windows zgłasza „Unable to access jarfile”.** Jeżeli ścieżka zawiera polskie litery, z folderu projektu wywołaj wrapper przez ścieżkę względną. Dla API użyj poniższego polecenia.
-
-```powershell
-java -jar gradle/wrapper/gradle-wrapper.jar :project-rest-api:bootRun
-```
-
-W tym poleceniu podstaw `:project-web-app:bootRun` dla Thymeleaf albo `build` do kompilacji.
-
-**Korzystasz z własnej bazy PostgreSQL.** Zamiast kroku 2 przygotuj bazę na swoim serwerze. Przed uruchomieniem API ustaw `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME` oraz `SPRING_DATASOURCE_PASSWORD` w terminalu API. URL ma format `jdbc:postgresql://127.0.0.1:5432/projekty`. Domyślne dane z Compose są przeznaczone do pracy lokalnej.
-
-**Frontend zgłasza brak połączenia.** Najpierw sprawdź [stan API](http://127.0.0.1:8080/actuator/health). Jeśli API działa pod innym adresem, ustaw `API_BASE_URL` w terminalu każdego uruchamianego frontendu, np. `$env:API_BASE_URL = 'http://127.0.0.1:8082'`. Uruchom frontend ponownie.
+Plan prac jest w [dokumentach zespołu](docs). Instrukcje frameworków: [RestClient](https://docs.spring.io/spring-framework/reference/integration/rest-clients.html), [inicjalizacja bazy](https://docs.spring.io/spring-boot/how-to/data-initialization.html) i [Thymeleaf](https://www.thymeleaf.org/doc/tutorials/3.1/usingthymeleaf.html).
