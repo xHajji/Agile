@@ -47,7 +47,7 @@ class ProjectControllerTest {
 
     @Test
     void returnsSavedProjects() throws Exception {
-        when(repository.findAllByOrderByIdAsc()).thenReturn(List.of(new Project("Projekt Alfa"), new Project("Projekt Beta")));
+        when(repository.findAllByOrderByCreatedAtAscIdAsc()).thenReturn(List.of(new Project("Projekt Alfa"), new Project("Projekt Beta")));
 
         mvc.perform(get("/api/projects"))
                 .andExpect(status().isOk())
