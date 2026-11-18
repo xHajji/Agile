@@ -13,7 +13,7 @@ class ProjectService {
     }
 
     List<Project> list() {
-        return projects.findAllByOrderByIdAsc();
+        return projects.findAllByOrderByCreatedAtAscIdAsc();
     }
 
     Project create(String name) {

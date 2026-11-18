@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -39,7 +40,7 @@ class ProjectController {
 
     record CreateProject(String name) {}
 
-    record ProjectResponse(Long id, String name) {
+    record ProjectResponse(UUID id, String name) {
         static ProjectResponse from(Project project) {
             return new ProjectResponse(project.getId(), project.getName());
         }

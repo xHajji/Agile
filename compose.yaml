@@ -1,16 +1,16 @@
-name: agile-lab
+name: agile-login-register-local
 
 services:
   db:
     image: postgres:18
     environment:
-      POSTGRES_DB: projekty
+      POSTGRES_DB: agile
       POSTGRES_USER: projekty_app
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-projekty_local}
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5455}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql
+      - agile-schema-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 3s
@@ -23,7 +23,7 @@ services:
       target: api
     environment:
       SERVER_ADDRESS: 0.0.0.0
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/projekty
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/agile
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-projekty_local}
     ports:
       - "127.0.0.1:8080:8080"
@@ -57,4 +57,4 @@ services:
       start_period: 10s
 
 volumes:
-  postgres-data:
+  agile-schema-data:

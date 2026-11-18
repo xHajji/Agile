@@ -7,6 +7,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
@@ -36,6 +37,6 @@ class ProjectApiClient {
                 .toBodilessEntity();
     }
 
-    record ProjectSummary(long id, String name) {}
+    record ProjectSummary(UUID id, String name) {}
     private record CreateProject(String name) {}
 }
